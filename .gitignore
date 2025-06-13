@@ -1,0 +1,17 @@
+venv/
+__pycache__/
+*.mp4
+*.mkv
+*.avi
+*.mp3
+*.wav
+*.so
+*.zip
+*.tar
+*.gz
+*.npy
+*.pt
+*.onnx
+recorded_videos/
+audio_folder/
+
