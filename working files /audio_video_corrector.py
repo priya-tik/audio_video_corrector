@@ -8,7 +8,7 @@ from audio_offset_finder.audio_offset_finder import find_offset_between_files
 def extract_audio(video_path, audio_path):
     subprocess.run([
         'ffmpeg', '-y', '-i', video_path,
-        '-vn', '-acodec', 'pcm_16le', '-ar', '44100', '-ac', '1',
+        '-vn', '-acodec', 'pcm_s16le', '-ar', '44100', '-ac', '1',
         audio_path
     ])
 

@@ -4,7 +4,7 @@ import os
 def shift_audio(input_video, output_video, delay_seconds):
 
     # Temporary files
-    audio_file = "recorded_videos/temp_extracted_audio.mp4"
+    audio_file = "../recorded_videos/temp_extracted_audio.mp4"
     shifted_audio = "temp_shifted_audio.mp4"
 
     # Extract audio from input video
@@ -73,7 +73,7 @@ def shift_audio(input_video, output_video, delay_seconds):
 
 
 if __name__ == "__main__":
-        input_file = "audio_folder/output_audio_delayed.mp4"
+        input_file = "../audio_folder/output_audio_delayed.mp4"
         output_temp = "output_audio_temp.mp4"
         audio_delay = -100
 
