@@ -44,23 +44,18 @@ def make_silent_presenter(presenter_video, output="presenter_silent.mp4"):
     ], check=True)
 
 def pad_presenter_video(slides_video, presenter_video, output="presenter_padded.mp4"):
-    # Step 1: Extract audio from slides video
+
     extract_audio(slides_video, output_audio="presentation_audio.aac")
 
-    # Step 2: Get durations
     slides_duration = get_video_duration(slides_video)
     presenter_duration = get_video_duration(presenter_video)
 
-    # Step 3: Calculate offset
     offset = max(0, slides_duration - presenter_duration)
 
-    # Step 4: Create black video of offset duration
     create_black_video(duration=offset, output="black.mp4")
 
-    # Step 5: Make presenter video silent (but full length)
     make_silent_presenter(presenter_video, output="presenter_silent.mp4")
 
-    # Step 6: Concatenate black + presenter
     with open("concat_list.txt", "w") as f:
         f.write(f"file '{os.path.abspath('black.mp4')}'\n")
         f.write(f"file '{os.path.abspath('presenter_silent.mp4')}'\n")
@@ -77,7 +72,6 @@ def pad_presenter_video(slides_video, presenter_video, output="presenter_padded.
         'temp_no_audio.mp4'
     ], check=True)
 
-    # Step 7: Add audio (keep full video even if longer than audio)
     subprocess.run([
         'ffmpeg', '-y',
         '-fflags', '+genpts',
@@ -99,7 +93,6 @@ def pad_presenter_video(slides_video, presenter_video, output="presenter_padded.
         except FileNotFoundError:
             pass
 
-# Example usage
 pad_presenter_video(
     slides_video="desync-presentation.mp4",
     presenter_video="desync-presenter.mp4",
