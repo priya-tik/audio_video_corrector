@@ -15,8 +15,8 @@ def create_blank_video_with_slides_audio(slides_video, duration=9, resolution="1
         '-f', 'lavfi', '-i', f'color=black:s={resolution}:d={duration}',
         '-i', 'slides_audio.aac',
         '-vf', f'scale={resolution},fps=25',
-        '-ar', '44100', '-ac', '1',
-        '-c:v', 'libx264', '-c:a', 'aac',
+        '-ar', '44100', '-ac', '2',
+        '-c:v', 'libx264', '-c:a', 'aac', '-b:a', '192k',
         '-shortest', output
     ], check=True)
 
@@ -27,11 +27,11 @@ def reencode_presenter(presenter_video, output="presenter_fixed.mp4"):
         'ffmpeg', '-y',
         '-i', presenter_video,
         '-vf', 'scale=1280:720,fps=25',
-        '-ar', '44100',
-        '-ac', '1',
-        '-c:v', 'libx264', '-c:a', 'aac',
+        '-ar', '44100', '-ac', '2',
+        '-c:v', 'libx264', '-c:a', 'aac', '-b:a', '192k',
         output
     ], check=True)
+
 
 def concat_fixed_videos(blank, presenter, output):
     with open("concat_list.txt", "w") as f:
@@ -66,6 +66,6 @@ def pad_presenter_with_slides_audio(slides_video, presenter_video, output_presen
 pad_presenter_with_slides_audio(
     slides_video="desync-presentation.mp4",
     presenter_video="desync-presenter.mp4",
-    output_presenter="presenter-sync_worked.mp4",
+    output_presenter="good.mp4",
     duration=9
 )
