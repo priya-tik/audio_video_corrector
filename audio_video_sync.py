@@ -108,4 +108,4 @@ def auto_fix_offset(video_a, video_b, output="good_fixed.mp4"):
     print(output)
 
 
-auto_fix_offset("src1 (1).mp4", "src2.mp4", output="testing2.mp4")
+auto_fix_offset("src1 (1).mp4", "src2.mp4", output="final_sync.mp4")
