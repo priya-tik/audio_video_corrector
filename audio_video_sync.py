@@ -1,42 +1,73 @@
 import subprocess
+import json
 import os
 
-def create_blank_video_with_slides_audio(slides_video, duration=9, resolution="1280x720", output="blank_fixed.mp4"):
+
+def get_audio_duration(filename):
+    result = subprocess.run([
+        'ffprobe', '-v', 'error',
+        '-select_streams', 'a:0',
+        '-show_entries', 'stream=duration',
+        '-of', 'json',
+        filename
+    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+    info = json.loads(result.stdout)
+    return float(info['streams'][0]['duration'])
+
+
+def get_video_duration(filename):
+    result = subprocess.run([
+        'ffprobe', '-v', 'error',
+        '-show_entries', 'format=duration',
+        '-of', 'json',
+        filename
+    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+    info = json.loads(result.stdout)
+    return float(info['format']['duration'])
+
+
+def create_offset_video(ref_video, offset_duration, resolution="1280x720", output="blank_with_audio.mp4"):
+    print(f"[INFO] Creating blank video of {offset_duration:.2f}s using audio from: {ref_video}")
+
     subprocess.run([
         'ffmpeg', '-y',
-        '-i', slides_video,
-        '-t', str(duration),
-        '-vn', '-ar', '44100', '-ac', '2', '-b:a', '192k', '-acodec', 'aac',
-        'slides_audio.aac'
+        '-i', ref_video,
+        '-t', str(offset_duration),
+        '-vn',
+        '-ar', '44100', '-ac', '2', '-b:a', '192k', '-acodec', 'aac',
+        'temp_offset_audio.aac'
     ], check=True)
 
     subprocess.run([
         'ffmpeg', '-y',
-        '-f', 'lavfi', '-i', f'color=black:s={resolution}:d={duration}',
-        '-i', 'slides_audio.aac',
+        '-f', 'lavfi', '-i', f'color=black:s={resolution}:d={offset_duration}',
+        '-i', 'temp_offset_audio.aac',
         '-vf', f'scale={resolution},fps=25',
         '-ar', '44100', '-ac', '2',
         '-c:v', 'libx264', '-c:a', 'aac', '-b:a', '192k',
         '-shortest', output
     ], check=True)
 
-    os.remove("slides_audio.aac")
+    os.remove("temp_offset_audio.aac")
 
-def reencode_presenter(presenter_video, output="presenter_fixed.mp4"):
+
+def reencode_video(video_path, output_path):
     subprocess.run([
         'ffmpeg', '-y',
-        '-i', presenter_video,
+        '-i', video_path,
         '-vf', 'scale=1280:720,fps=25',
         '-ar', '44100', '-ac', '2',
         '-c:v', 'libx264', '-c:a', 'aac', '-b:a', '192k',
-        output
+        output_path
     ], check=True)
 
 
-def concat_fixed_videos(blank, presenter, output):
+def concat_videos(video1, video2, output):
     with open("concat_list.txt", "w") as f:
-        f.write(f"file '{os.path.abspath(blank)}'\n")
-        f.write(f"file '{os.path.abspath(presenter)}'\n")
+        f.write(f"file '{os.path.abspath(video1)}'\n")
+        f.write(f"file '{os.path.abspath(video2)}'\n")
 
     subprocess.run([
         'ffmpeg', '-y',
@@ -48,24 +79,33 @@ def concat_fixed_videos(blank, presenter, output):
 
     os.remove("concat_list.txt")
 
-def pad_presenter_with_slides_audio(slides_video, presenter_video, output_presenter, duration=9):
-    print("[INFO] Creating black video with slides audio...")
-    create_blank_video_with_slides_audio(slides_video, duration, output="blank_fixed.mp4")
 
-    print("[INFO] Re-encoding presenter video...")
-    reencode_presenter(presenter_video, output="presenter_fixed.mp4")
+def auto_fix_offset(video_a, video_b, output="good_fixed.mp4"):
+    a1 = get_audio_duration(video_a)
+    a2 = get_audio_duration(video_b)
 
-    print("[INFO] Concatenating both parts...")
-    concat_fixed_videos("blank_fixed.mp4", "presenter_fixed.mp4", output_presenter)
+    if abs(a1 - a2) < 0.1:
+        return
 
-    os.remove("blank_fixed.mp4")
-    os.remove("presenter_fixed.mp4")
+    if a1 > a2:
+        ref = video_a
+        desynced = video_b
+        offset = a1 - a2
+    else:
+        ref = video_b
+        desynced = video_a
+        offset = a2 - a1
 
-    print(f"[✅ DONE] Output written to: {output_presenter}")
+    create_offset_video(ref, offset_duration=offset, output="blank_with_audio.mp4")
 
-pad_presenter_with_slides_audio(
-    slides_video="desync-presentation.mp4",
-    presenter_video="desync-presenter.mp4",
-    output_presenter="good.mp4",
-    duration=9
-)
+    reencode_video(desynced, "desynced_fixed.mp4")
+
+    concat_videos("blank_with_audio.mp4", "desynced_fixed.mp4", output)
+
+    os.remove("blank_with_audio.mp4")
+    os.remove("desynced_fixed.mp4")
+
+    print(output)
+
+
+auto_fix_offset("src1 (1).mp4", "src2.mp4", output="testing2.mp4")
