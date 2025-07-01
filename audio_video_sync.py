@@ -4,6 +4,15 @@ import os
 
 
 def get_audio_duration(filename):
+    """
+    Returns the duration (in seconds) of the first audio stream in a media file using ffprobe.
+
+    Parameters:
+        filename (str): Path to the media file.
+
+    Returns:
+        float: Duration of the audio stream in seconds.
+    """
     result = subprocess.run([
         'ffprobe', '-v', 'error',
         '-select_streams', 'a:0',
@@ -17,6 +26,15 @@ def get_audio_duration(filename):
 
 
 def get_video_duration(filename):
+    """
+    Returns the duration (in seconds) of a video file using ffprobe.
+
+    Parameters:
+        filename (str): Path to the video file.
+
+    Returns:
+        float: Duration of the video in seconds.
+    """
     result = subprocess.run([
         'ffprobe', '-v', 'error',
         '-show_entries', 'format=duration',
@@ -29,6 +47,15 @@ def get_video_duration(filename):
 
 
 def create_offset_video(ref_video, offset_duration, resolution="1280x720", output="blank_with_audio.mp4"):
+    """
+    Creates a blank black video with audio extracted from the start of the reference video.
+
+    Parameters:
+        ref_video (str): Path to the reference video to extract audio from.
+        offset_duration (float): Duration of the blank segment to create.
+        resolution (str): Resolution of the blank video (default "1280x720").
+        output (str): Path to save the output blank video with audio.
+    """
     print(f"[INFO] Creating blank video of {offset_duration:.2f}s using audio from: {ref_video}")
 
     subprocess.run([
@@ -54,6 +81,13 @@ def create_offset_video(ref_video, offset_duration, resolution="1280x720", outpu
 
 
 def reencode_video(video_path, output_path):
+    """
+    Re-encodes a video to standard resolution, frame rate, and audio settings.
+
+    Parameters:
+        video_path (str): Path to input video.
+        output_path (str): Path to save the re-encoded output.
+    """
     subprocess.run([
         'ffmpeg', '-y',
         '-i', video_path,
@@ -65,6 +99,14 @@ def reencode_video(video_path, output_path):
 
 
 def concat_videos(video1, video2, output):
+    """
+    Concatenates two video files into one output video.
+
+    Parameters:
+        video1 (str): Path to the first video.
+        video2 (str): Path to the second video.
+        output (str): Path to save the concatenated video.
+    """
     with open("concat_list.txt", "w") as f:
         f.write(f"file '{os.path.abspath(video1)}'\n")
         f.write(f"file '{os.path.abspath(video2)}'\n")
@@ -81,10 +123,19 @@ def concat_videos(video1, video2, output):
 
 
 def auto_fix_offset(video_a, video_b, output="good_fixed.mp4"):
+    """
+    Automatically synchronizes two videos by adding blank padding to the shorter one.
+
+    Parameters:
+        video_a (str): Path to the first video.
+        video_b (str): Path to the second video.
+        output (str): Path to save the synchronized output video.
+    """
     a1 = get_audio_duration(video_a)
     a2 = get_audio_duration(video_b)
 
     if abs(a1 - a2) < 0.1:
+        print("[INFO] No sync adjustment needed.")
         return
 
     if a1 > a2:
@@ -97,15 +148,14 @@ def auto_fix_offset(video_a, video_b, output="good_fixed.mp4"):
         offset = a2 - a1
 
     create_offset_video(ref, offset_duration=offset, output="blank_with_audio.mp4")
-
     reencode_video(desynced, "desynced_fixed.mp4")
-
     concat_videos("blank_with_audio.mp4", "desynced_fixed.mp4", output)
 
     os.remove("blank_with_audio.mp4")
     os.remove("desynced_fixed.mp4")
 
-    print(output)
+    print(f"[INFO] Output saved as: {output}")
 
 
+# Example usage
 auto_fix_offset("src1 (1).mp4", "src2.mp4", output="final_sync.mp4")
