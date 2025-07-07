@@ -148,16 +148,6 @@ def auto_fix_offset(video_a, video_b, output="good_fixed.mp4", presenter="presen
     else:
         fixed_type = "unknown"
 
-    with open("sync_target.txt") as f:
-        fixed = f.read().strip()
-
-    if fixed == "presenter":
-        print("flavor=presenter/work")
-    elif fixed == "presentation":
-        print("flavor=presentation/work")
-    else:
-        print("flavor=sync/error")
-
     # Fix video
     create_offset_video(ref, offset_duration=offset, output="blank_with_audio.mp4")
     reencode_video(desynced, "desynced_fixed.mp4")
