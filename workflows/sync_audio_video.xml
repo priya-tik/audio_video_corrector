@@ -34,7 +34,7 @@
                 description="Inspect media and update workflow properties">
             >
             <configurations>
-                <configuration key="exec">/usr/local/bin/assign_flavor.py</configuration>
+                <configuration key="exec">/usr/local/bin/audio_sync_check.py</configuration>
                 <configuration key="params">#{flavor(presenter/source)} #{flavor(presentation/source)} #{out}</configuration>
                 <configuration key="set-workflow-properties">true</configuration>
                 <configuration key="output-filename">wf.properties</configuration>
@@ -47,7 +47,7 @@
                 if="&apos;${sync_video}&apos; == &apos;presenter&apos;"
                 description="sync presenter video">
             <configurations>
-                <configuration key="exec">/usr/local/bin/sync_video.py</configuration>
+                <configuration key="exec">/usr/local/bin/audio_video_sync_fixer.py</configuration>
                 <configuration key ="params">#{flavor(presenter/source)} #{flavor(presentation/source)} #{out}</configuration>
                 <configuration key="output-filename">presenter_sync.mp4</configuration>
                 <configuration key="target-flavor">presenter/synced</configuration>
@@ -71,7 +71,7 @@
                 if="&apos;${sync_video}&apos; == &apos;presentation&apos;"
                 description="sync presentation video">
             <configurations>
-                <configuration key="exec">/usr/local/bin/sync_video.py</configuration>
+                <configuration key="exec">/usr/local/bin/audio_video_sync_fixer.py</configuration>
                 <configuration key ="params">#{flavor(presenter/source)} #{flavor(presentation/source)} #{out}</configuration>
                 <configuration key="output-filename">presentation_sync.mp4</configuration>
                 <configuration key="target-flavor">presentation/synced</configuration>
