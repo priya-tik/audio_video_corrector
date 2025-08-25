@@ -46,6 +46,5 @@ def write_properties(status, fixed_type, offset, outputfile):
         f.write(f"offset.seconds={offset:.2f}\n")
     logger.info("Properties written to: %s", outputfile)
 
-# Main execution
 status, fixed_type, offset = determine_sync_status(presenter, presentation)
 write_properties(status, fixed_type, offset, outputfile)
